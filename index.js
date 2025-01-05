@@ -93,6 +93,6 @@ app.get("/search", async (req, res) => {
 });
 
 // Bind to 0.0.0.0 and specified port
-app.listen(process.env.PORT || 5000, "0.0.0.0", () =>
+app.listen(process.env.PORT || 8080, "0.0.0.0", () =>
   console.log(`Server is Running at PORT ${process.env.PORT || 5000}`)
 );
