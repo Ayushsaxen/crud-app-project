@@ -1,28 +1,32 @@
 const express = require("express");
 const path = require("path");
 const hbs = require("hbs");
-const bodyParser = require("body-parser");
 const dotenv = require("dotenv");
-dotenv.config();
 const Employee = require("./models/Employee");
-const app = express();
+dotenv.config();
 require("./dbconnect");
-const encoder = bodyParser.urlencoded();
-app.use(express.static(path.join(__dirname, "views")));
+
+const app = express();
+app.use(express.urlencoded({ extended: true })); // Use express built-in URL-encoded parser
+app.use(express.static(path.join(__dirname, "public"))); // Serve static files from "public" directory
+
 app.set("view engine", "hbs");
 hbs.registerPartials(path.join(__dirname, "views/partials"));
+
 app.get("/", async (req, res) => {
   try {
     var data = await Employee.find();
     res.render("index", { data: data });
   } catch (error) {
-    res.statusCode(500).send("Something Went Wrong");
+    res.status(500).send("Something Went Wrong");
   }
 });
+
 app.get("/add", (req, res) => {
   res.render("add", { show: false });
 });
-app.post("/add", encoder, async (req, res) => {
+
+app.post("/add", async (req, res) => {
   try {
     const data = new Employee(req.body);
     await data.save();
@@ -32,6 +36,7 @@ app.post("/add", encoder, async (req, res) => {
     res.render("add", { show: true });
   }
 });
+
 app.get("/delete/:_id", async (req, res) => {
   try {
     await Employee.deleteOne({ _id: req.params._id });
@@ -40,6 +45,7 @@ app.get("/delete/:_id", async (req, res) => {
     res.redirect("/");
   }
 });
+
 app.get("/update", async (req, res) => {
   try {
     var data = await Employee.findOne({ _id: req.query._id });
@@ -48,7 +54,8 @@ app.get("/update", async (req, res) => {
     res.redirect("/");
   }
 });
-app.post("/update/:_id", encoder, async (req, res) => {
+
+app.post("/update/:_id", async (req, res) => {
   try {
     const data = await Employee.findOne({ _id: req.params._id });
     data.name = req.body.name ?? data.name;
@@ -65,6 +72,7 @@ app.post("/update/:_id", encoder, async (req, res) => {
     res.render("add", { show: true });
   }
 });
+
 app.get("/search", async (req, res) => {
   try {
     var data = await Employee.find({
@@ -83,6 +91,8 @@ app.get("/search", async (req, res) => {
     res.redirect("/");
   }
 });
-app.listen(process.env.PORT || 5000, () =>
-  console.log("Server is Running at PORT 5000")
+
+// Bind to 0.0.0.0 and specified port
+app.listen(process.env.PORT || 5000, "0.0.0.0", () =>
+  console.log(`Server is Running at PORT ${process.env.PORT || 5000}`)
 );
